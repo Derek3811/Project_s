@@ -46,6 +46,7 @@ export type ProjectState = {
   language?: 'en' | 'zh';
   quotaWarning?: boolean;
   model?: string;
+  uiStyle?: string;
 };
 
 // UI Types

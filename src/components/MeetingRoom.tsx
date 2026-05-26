@@ -894,23 +894,15 @@ export default function MeetingRoom() {
                     <Target size={12} className="text-amber-500" />
                     {t.openQuestions}
                   </div>
-                  <ul className="space-y-4 pl-1">
+                  <ul className="grid grid-cols-1 gap-4 pl-0.5">
                     {project.rounds[project.rounds.length - 1].openQuestions!.map((q, i) => (
-                      <li key={i} className="group relative">
-                        <div className="flex items-start gap-3">
-                          <div className="w-1 h-1 bg-amber-500 rounded-full mt-1.5 shrink-0 group-hover:scale-150 transition-transform"></div>
-                          <div className="flex-1 space-y-2">
-                            <span className="text-xs text-slate-300 leading-relaxed block">{q}</span>
-                            <textarea
-                              rows={2}
-                              placeholder={t.answerInputLabel || 'Answer this question...'}
-                              value={questionAnswers[q] || ''}
-                              onChange={(e) => setQuestionAnswers(prev => ({ ...prev, [q]: e.target.value }))}
-                              className="w-full bg-[#0A0D14]/80 border border-slate-700/50 hover:border-slate-600 rounded box-border p-2.5 text-[11px] text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors resize-y max-h-32"
-                            />
-                          </div>
-                        </div>
-                      </li>
+                      <StructuredQuestionCard 
+                        key={i} 
+                        q={q} 
+                        isZh={project.language === 'zh'} 
+                        questionAnswers={questionAnswers} 
+                        setQuestionAnswers={setQuestionAnswers} 
+                      />
                     ))}
                   </ul>
                 </div>
@@ -1317,6 +1309,170 @@ function simplifyText(text: string, isZh: boolean): string {
   }
   return s;
 }
+
+interface StructuredQuestionCardProps {
+  q: string;
+  isZh: boolean;
+  questionAnswers: Record<string, string>;
+  setQuestionAnswers: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+}
+
+const StructuredQuestionCard: React.FC<StructuredQuestionCardProps> = ({ q, isZh, questionAnswers, setQuestionAnswers }) => {
+  let questionText = q;
+  let options: { key: string; text: string }[] = [];
+  let aiPreferred = "";
+  let aiJudgmentReason = "";
+  let isStructured = false;
+
+  try {
+    const parsed = JSON.parse(q);
+    if (parsed && typeof parsed === 'object' && parsed.question) {
+      questionText = parsed.question;
+      options = parsed.options || [];
+      aiPreferred = parsed.aiPreferred || "";
+      aiJudgmentReason = parsed.aiJudgmentReason || "";
+      isStructured = true;
+    }
+  } catch (e) {
+    // Falls back to flat question string
+  }
+
+  // Active state key based on what is stored in questionAnswers[q]
+  const currentVal = questionAnswers[q] || '';
+  
+  // Decide which option is matching currentVal
+  const matchedOption = options.find(opt => {
+    if (!currentVal) return false;
+    return currentVal.includes(`[${opt.key}]`) || currentVal.includes(`Option ${opt.key}`) || currentVal.startsWith(`选 ${opt.key}`) || currentVal.startsWith(`Selected Option ${opt.key}`);
+  });
+
+  const isAiSelected = currentVal && (currentVal.includes('[AI Recommended') || currentVal.includes('[AI 推荐') || currentVal.includes('[AI 推荐'));
+
+  const handleSelectOption = (optKey: string, optText: string) => {
+    const formattedAnswer = isZh 
+      ? `选 ${optKey}: ${optText}`
+      : `Selected Option ${optKey}: ${optText}`;
+    setQuestionAnswers(prev => ({
+      ...prev,
+      [q]: formattedAnswer
+    }));
+  };
+
+  const handleSelectAiRecommendation = () => {
+    if (!aiPreferred) return;
+    const preferredOptionText = options.find(o => o.key === aiPreferred)?.text || '';
+    const formattedAnswer = isZh
+      ? `[AI 推荐决策 - 选项 ${aiPreferred}] ${preferredOptionText}\n推荐理由: ${aiJudgmentReason}`
+      : `[AI Recommended Path - Option ${aiPreferred}] ${preferredOptionText}\nReason: ${aiJudgmentReason}`;
+    setQuestionAnswers(prev => ({
+      ...prev,
+      [q]: formattedAnswer
+    }));
+  };
+
+  return (
+    <li className="bg-slate-900/30 hover:bg-slate-900/50 transition-all border border-slate-800/80 rounded-xl p-5 space-y-4 list-none">
+      <div className="flex items-start gap-3">
+        <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full mt-2 shrink-0 animate-pulse" />
+        <div className="flex-1">
+          <span className="text-xs font-bold text-slate-100 leading-relaxed block matches-theme">
+            {questionText}
+          </span>
+        </div>
+      </div>
+
+      {isStructured ? (
+        <div className="space-y-3.5 pl-4.5">
+          {/* Quick AI recommendation pill/badge */}
+          {aiPreferred && (
+            <div className="bg-[#0B0F19] rounded-lg border border-indigo-500/20 p-3.5 space-y-2.5 animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="flex items-center justify-between gap-4">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold uppercase tracking-widest text-[8px] rounded-md">
+                  <Brain size={11} className="text-cyan-400 animate-pulse" />
+                  {isZh ? "AI 战略建议" : "AI Strategic Consensus"}
+                </span>
+                
+                <button
+                  type="button"
+                  onClick={handleSelectAiRecommendation}
+                  className={cn(
+                    "px-3 py-1.5 text-[9px] font-extrabold uppercase tracking-widest cursor-pointer rounded-lg border transition-all active:scale-95",
+                    isAiSelected
+                      ? "bg-cyan-500/20 border-cyan-500/40 text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.15)]"
+                      : "bg-[#181D2E] hover:bg-slate-800 border-indigo-500/30 hover:border-indigo-400 text-indigo-300 hover:text-white"
+                  )}
+                >
+                  {isAiSelected 
+                    ? (isZh ? "✓ 已采纳建议" : "✓ Recommendation Applied") 
+                    : (isZh ? "一键选择 AI 推荐" : "Use AI Recommendation")}
+                </button>
+              </div>
+              <p className="text-[10px] text-slate-400 leading-relaxed font-sans mt-1">
+                <span className="text-indigo-300 font-bold">{isZh ? "【AI 锁定选项 " : "【AI Recommends Option "}{aiPreferred}】</span>
+                {aiJudgmentReason}
+              </p>
+            </div>
+          )}
+
+          {/* Option Multiple-Choices Buttons */}
+          <div className="grid grid-cols-1 gap-2.5">
+            {options.map((opt) => {
+              const isSelected = matchedOption?.key === opt.key && !isAiSelected;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => handleSelectOption(opt.key, opt.text)}
+                  className={cn(
+                    "w-full text-left p-3.5 rounded-lg border text-xs leading-normal transition-all active:scale-[0.99] cursor-pointer flex items-start gap-3",
+                    isSelected
+                      ? "bg-[#121A2E] border-cyan-500/50 text-cyan-300 font-medium shadow-[0_0_12px_rgba(6,182,212,0.06)]"
+                      : "bg-[#090D14]/55 hover:bg-slate-800/40 border-slate-800 text-slate-400 hover:text-slate-200"
+                  )}
+                >
+                  <span className={cn(
+                    "flex items-center justify-center w-5 h-5 rounded-md font-mono text-[10px] font-bold uppercase shrink-0",
+                    isSelected 
+                      ? "bg-cyan-500/10 border border-cyan-500/30 text-cyan-400" 
+                      : "bg-[#161B22] border border-slate-850 text-slate-500"
+                  )}>
+                    {opt.key}
+                  </span>
+                  <span className="flex-1 block pt-0.5">{opt.text}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Text Area for modifications */}
+          <div className="space-y-1.5 pt-1.5">
+            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block font-mono pl-0.5">
+              {isZh ? "确认决策或在此微调/手写自定义反馈：" : "Confirm decision details or handwrite override here:"}
+            </span>
+            <textarea
+              rows={2}
+              placeholder={isZh ? "点击上方选项快速生成；您也可在线修改或在此直接填写任何特定主张" : "Click options to auto-fill; you can also type customized fine-tuning..."}
+              value={currentVal}
+              onChange={(e) => setQuestionAnswers(prev => ({ ...prev, [q]: e.target.value }))}
+              className="w-full bg-[#0A0D14]/80 border border-slate-800 hover:border-slate-700/80 rounded box-border p-3 text-[11px] text-slate-200 placeholder-slate-500/80 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors resize-y max-h-32"
+            />
+          </div>
+        </div>
+      ) : (
+        /* Legacy Unstructured Fallback fallback */
+        <div className="pl-4.5 space-y-2">
+          <textarea
+            rows={2}
+            placeholder={isZh ? "回答此议题并指引下次会商..." : "Answer this question..."}
+            value={currentVal}
+            onChange={(e) => setQuestionAnswers(prev => ({ ...prev, [q]: e.target.value }))}
+            className="w-full bg-[#0A0D14]/80 border border-slate-800 hover:border-slate-700 rounded box-border p-2.5 text-[11px] text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors resize-y max-h-32"
+          />
+        </div>
+      )}
+    </li>
+  );
+};
 
 interface GlobalDecisionItemProps {
   decision: string;

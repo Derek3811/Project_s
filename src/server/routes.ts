@@ -41,7 +41,7 @@ apiRouter.post('/projects/import', (req, res) => {
 });
 
 apiRouter.post('/projects', (req, res) => {
-  const { idea, goals, constraints, agents, language, model } = req.body;
+  const { idea, goals, constraints, agents, language, model, uiStyle } = req.body;
   if (!idea) {
     return res.status(400).json({ success: false, error: 'Idea is required' });
   }
@@ -57,7 +57,8 @@ apiRouter.post('/projects', (req, res) => {
     globalDecisions: [],
     createdAt: Date.now(),
     language: language || 'en',
-    model: model || 'gemini-flash-lite-latest'
+    model: model || 'gemini-flash-lite-latest',
+    uiStyle: uiStyle || 'interactive-neon'
   };
 
   db.saveProject(project);

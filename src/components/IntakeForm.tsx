@@ -1,6 +1,6 @@
 import { useState, FormEvent, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Target, ShieldAlert, ArrowRight, UserCog, Sparkles, Cpu, CpuIcon, Upload, FileJson, Check, Copy, Key } from 'lucide-react';
+import { Brain, Target, ShieldAlert, ArrowRight, UserCog, Sparkles, Cpu, CpuIcon, Upload, FileJson, Check, Copy, Key, Palette } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { AgentRole } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
@@ -146,7 +146,8 @@ export default function IntakeForm() {
     idea: '',
     goals: '',
     constraints: '',
-    model: 'gemini-flash-lite-latest'
+    model: 'gemini-flash-lite-latest',
+    uiStyle: 'interactive-neon'
   });
   
   const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set(['1', '2']));
@@ -359,6 +360,80 @@ export default function IntakeForm() {
                   onChange={e => setForm({...form, constraints: e.target.value})}
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Aesthetic & Frontend Design Preset Selector */}
+          <div className="pt-6 border-t border-slate-800">
+            <div className="flex flex-col mb-4">
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-300 font-bold matches-theme">
+                <Palette size={18} className="text-cyan-400" /> 
+                {language === 'zh' ? '产品美术设计与前端开发风格预设' : 'Frontend Aesthetic & Design System Preset'}
+              </label>
+              <span className="text-xs text-slate-500 mt-1 leading-normal">
+                {language === 'zh' 
+                  ? '指定下游编译提示词的极致视觉细节，彻底规避 AI 默认生成的 1990 年代简陋复古排版，强制输出极具质感的现代 UI：'
+                  : 'Force downstream AI build models to use heavy, eye-catching premium styling guidelines instead of lazy 1990-style retro mockups.'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3.5">
+              {[
+                {
+                  id: 'interactive-neon',
+                  titleEn: '⚡ Sleek Neo-Cyber Arcade Vibe (Anti-1990 Lazy Vibe)',
+                  titleZh: '⚡ 高亮赛博幻影霓虹 & 游戏动美学 (极致规避 1990 简陋感)',
+                  descEn: 'Mandates high-contrast absolute black backgrounds with radiant cyan/emerald border glows, rounded-2xl modern glassmorphic panels, CSS keyframe floating loops, and tactile arcade response animations. Absolutely solves raw, unstyled game screen fallback.',
+                  descZh: '强制使用纯色电竞暗背景配搭放射性蓝绿霓虹边框、大圆角现代毛玻璃面板、柔缓呼吸与微光粒子 CSS 效果，以及带有高度交互节奏的按键。彻底杜绝普通 1990 像素年代未上色般的低质 Canvas 或 Div 布局。',
+                  vibeColor: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
+                },
+                {
+                  id: 'modern-minimalist',
+                  titleEn: '💼 Obsidian Premium Minimalist (Modern SaaS / Vercel-Style)',
+                  titleZh: '💼 极客高端机能深色 (SaaS & 现代多维控制区格式)',
+                  descEn: 'Instructs the coding AI to build premium dark slate dashboard components, crisp hairline silver guidelines, Inter typography pairings with JetBrains Mono numbers, micro-animations, and balanced negative airspace. Sophisticated and distraction-free layout.',
+                  descZh: '指引 AI 构建富有“空气感”的暗色机能控制舱。配备极细腻的银灰色微边框、Inter 与等宽字体结合的科技化数字表格。专为商业工具、后台面板和个人技术原型量身打造的高级灰度色表。',
+                  vibeColor: 'bg-violet-500/10 text-violet-400 border-violet-500/20'
+                },
+                {
+                  id: 'warm-editorial',
+                  titleEn: '🎨 Earthy Warm Cozy Editorial (Luxurious Soft Paper Vibe)',
+                  titleZh: '🎨 暖意经典书卷风纸张美学 (高级质感/文艺视觉)',
+                  descEn: 'Replaces generic dark modes with clean off-white cream (#FAF9F5), elegant classic serif headline typography (Georgia / Playfair Display), earthy natural amber/apricot highlight chips, and spacious reading margins. Exquisite editorial card-shadow feel.',
+                  descZh: '抛弃落俗套的黑白灰色阶，赋予系统自然米白暖眼底色、庄重高雅的古典衬线大标题、和煦自然的暖阳琥珀高亮。创造出宛如高档实体杂志般的视觉空旷和自然触觉，极其新颖优雅。',
+                  vibeColor: 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                }
+              ].map(v => {
+                const isActive = form.uiStyle === v.id;
+                const title = language === 'zh' ? v.titleZh : v.titleEn;
+                const desc = language === 'zh' ? v.descZh : v.descEn;
+
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setForm({ ...form, uiStyle: v.id })}
+                    className={cn(
+                      "p-4.5 text-left border rounded-xl flex flex-col justify-between transition-all relative overflow-hidden cursor-pointer",
+                      isActive
+                        ? "border-cyan-500 bg-cyan-400/10 ring-1 ring-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.1)] animate-in fade-in zoom-in-95 duration-100"
+                        : "border-slate-800 bg-[#0F1219] hover:border-slate-700 hover:bg-slate-800 text-slate-300"
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2 w-full mb-1">
+                      <div className="font-bold text-xs flex items-center gap-1.5 uppercase tracking-wide">
+                        {title}
+                      </div>
+                      <span className={cn("text-[8px] tracking-widest uppercase px-2 py-0.5 rounded border leading-none font-bold", v.vibeColor)}>
+                        {v.id === 'interactive-neon' ? (language === 'zh' ? '最推荐·强设计' : 'RECOMMENDED FOR GAMES') : (v.id === 'modern-minimalist' ? (language === 'zh' ? '高端办公' : 'HIGH-END SAAS') : (language === 'zh' ? '治愈米黄' : 'CREATIVE CLASSIC'))}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-slate-400 leading-relaxed font-sans mt-0.5">
+                      {desc}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

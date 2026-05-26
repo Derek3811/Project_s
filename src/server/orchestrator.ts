@@ -4,6 +4,18 @@ import { Type, Schema } from '@google/genai';
 
 function formatMemory(project: ProjectState): string {
   let memory = `Project Idea: ${project.idea}\nGoals: ${project.goals}\nConstraints: ${project.constraints}\n\n`;
+  
+  if (project.uiStyle) {
+    memory += `Selected Design System / Frontend Aesthetic Style Preset: ${project.uiStyle}\n`;
+    if (project.uiStyle === 'interactive-neon') {
+      memory += `Aesthetic Mandate: SLEEK CYBER-GLOW GAME ENGINE AESTHETIC. Ensure absolute high contrast arcade dark screens, vibrant cyan/emerald/hot-pink glowing border paths, rounded-xl/rounded-2xl card panels, CSS keyframes floating motion/glow loops, and tactile click animations. Avoid unstyled retro Windows 95 or default 1990 table layouts.\n\n`;
+    } else if (project.uiStyle === 'modern-minimalist') {
+      memory += `Aesthetic Mandate: BLACK SLATE MINIMALIST (VERCEL/LINEAR-STYLE). Modern obsidian black backgrounds, extremely clean semi-transparent light grey border lines, neat typography, high negatives, and zero visual clutter.\n\n`;
+    } else if (project.uiStyle === 'warm-editorial') {
+      memory += `Aesthetic Mandate: WARM COZY EDITORIAL COOP PAPER. Luxurious warm eye-safe cream paper backgrounds (#FAF9F5), Georgia/Playfair display serif titles, earthy apricot/sage highlights, relaxed reading spacing.\n\n`;
+    }
+  }
+
   if (project.globalDecisions.length > 0) {
     memory += `Global Decisions Locked:\n- ${project.globalDecisions.join('\n- ')}\n\n`;
   }
@@ -27,6 +39,221 @@ function formatMemory(project: ProjectState): string {
     });
   }
   return memory;
+}
+
+function mockifyQuestions(questions: string[], isZh: boolean, roundNumber: number): string[] {
+  return questions.map((q, idx) => {
+    let options: { key: string; text: string }[] = [];
+    let aiPreferred = "A";
+    let aiJudgmentReason = "";
+
+    if (isZh) {
+      if (roundNumber === 1) {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "先进行本地优先存储 (Local-First)，第二阶段稳定后再引入 WebSocket 云端多端同步" },
+            { key: "B", text: "第一天直接打通全局实时强连云端数据库，强制阻塞用户直到网络保存成功" },
+            { key: "C", text: "暂缓一切复杂图表，首期仅保留轻量静态文本，确保开发周期最短" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "本地优先配合乐观 UI (Optimistic UI) 体验极佳，能节省 80% 的早期云端计算与通道带宽成本。";
+        } else {
+          options = [
+            { key: "A", text: "采用 Serverless 容器按需弹性托管，配合本地缓存降低服务层规格" },
+            { key: "B", text: "直接采购大规格独享云服务器，自购冗余灾备与云关系型数据库" },
+            { key: "C", text: "所有计算和存储推向用户客户端浏览器 (纯前端编译)，将物理运行资源耗费降至零" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Serverless 在冷启动与低流量期几乎无维持费用，配合轻量存储是 MVP 阶段最高效的资金策略。";
+        }
+      } else if (roundNumber === 2) {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "采用单写入锁时间戳校验：本地保留写队列，按次序在重新连线时平滑进行增量双向合并" },
+            { key: "B", text: "强制覆盖：以最后一次连网时客户端存在的快照为准，完全抛弃断网期间生成的历史节点" },
+            { key: "C", text: "发生冲突时弹出人工比对窗口，交由用户亲自逐字逐行选择保留哪一版文件" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "基于时间戳的自动重载与增量双向合并，能对用户做到无感顺滑，大幅度减少交互决策损耗。";
+        } else {
+          options = [
+            { key: "A", text: "通过 ResizeObserver 动态获取比例，并在组件内配置按比例等比缩放或自适应断点隐藏" },
+            { key: "B", text: "强制设置固定宽度卡片横向溢出，在窄屏状态下强制引入横向滚动条保留桌面布局" },
+            { key: "C", text: "做两套完全隔离的 UI 组件包：移动端专用精简视图与桌面端重彩看板，增加编译分支" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "ResizeObserver 驱动的响应式自适应卡片能在单套代码中完美契合不同屏幕，兼顾质量与可维护性。";
+        }
+      } else if (roundNumber === 3) {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "引入 React state 防抖 (Debounce / Throttle) 并在 Web Worker 线程对数据源进行渲染控制" },
+            { key: "B", text: "每一次用户键入均重新进行 Recharts 整体多曲线插值绘制，追求零卡顿毫秒级实时重绘" },
+            { key: "C", text: "限制用户的单次编辑频率，输入过快时进行视觉遮罩，降低交互反应频次" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "对 Recharts 等高频渲染组件使用 100-300ms 动态防抖与 Web Worker 计算隔离是现代前端的黄金标准。";
+        } else {
+          options = [
+            { key: "A", text: "在共识投票阶段增设一票否决权专用状态位，触发时将决策撤回至辩论重审池中重新研讨" },
+            { key: "B", text: "屏蔽特定角色发表极端否定态度，少数服从多数，强行锁定并固化当前流程记录" },
+            { key: "C", text: "否决时立即强行弹窗锁死屏幕，提示用户需要手写输入详尽理由才能解锁" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "撤回复议机制能充分尊重架构师或安全总监的红线否决意见，符合战略对齐和容错防空机制。";
+        }
+      } else if (roundNumber === 4) {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "在物理构建中配置全局 CDN (内容分发网络) 节点缓存，及边缘冷启动计算就近重载" },
+            { key: "B", text: "强制把服务器买在中心地理位置，不使用任何 CDN，简化打包发布流程" },
+            { key: "C", text: "将静态资源做重度预加载处理 (比如一次性在应用首屏加载全部多媒体和包体资产)" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "利用全球 CDN 边缘节点缓存静态制品是应对跨境或复杂地域访问延迟最高效、最基础的方法。";
+        } else {
+          options = [
+            { key: "A", text: "启用小规模闭门种子用户灰度部署通道，在小范围内先行收集真实热数据进行打磨" },
+            { key: "B", text: "不进行灰度，直接全量进行公开大版本推送，面向全体受众进行试运行测试" },
+            { key: "C", text: "不部署，仅在内网开发测试通过后，等待两周观察再直接推向生产部署环境" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "小规模灰度能建立安全隔离带，让真实用户的反馈在最低故障风险下流入团队，具有极高工程实用价值。";
+        }
+      } else {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "核心转化漏斗、活跃会商频次、需求承接转化就绪指数评分变动曲线" },
+            { key: "B", text: "用户每一次具体点击日志、总登录时长、冗余服务器硬件物理利用率" },
+            { key: "C", text: "每日导出 Markdown 包体数、客户端 API 请求 HTTP 400 失败总次数统计" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "业务上的转化漏斗、活跃频次、就绪度变动直观体现了产品的愿景对齐与商业闭合程度。";
+        } else {
+          options = [
+            { key: "A", text: "在成功导出就绪脚本或通过审计时，弹窗并赠送精美一键分享生成物，自发拉动社交链" },
+            { key: "B", text: "增加强留存推送和弹窗，对用户进行大负荷营销邮件轰炸以强拉回访" },
+            { key: "C", text: "强制要求用户先拉 3 个新用户进行激活，才能解锁下一阶段的全部完整功能" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "提供精妙的社交货币分享物 (如设计对齐波谱海报) 能够极大促进用户的自发裂变与口碑传播。";
+        }
+      }
+    } else {
+      // English Mocks
+      if (roundNumber === 1) {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "Adopt Local-First persistence initially, adding WebSocket live synchronization in Phase 2" },
+            { key: "B", text: "Enforce immediate full cloud database sync, blocking users until save actions succeed" },
+            { key: "C", text: "Table the complex charts and preserve minimal static screens to shorten development" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Local-First paired with Optimistic UI maximizes interactive speed while reducing primary server cost by 80%.";
+        } else {
+          options = [
+            { key: "A", text: "Leverage Serverless elastic container hoisting and local cache buffers" },
+            { key: "B", text: "Acquire high-performance independent virtual private servers and relational database instances" },
+            { key: "C", text: "Compile execution entirely on client WebAssembly modules to dump physical hosting fees to zero" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Serverless has zero upkeep cost when traffic is low, ensuring the most cost-efficient startup pipeline.";
+        }
+      } else if (roundNumber === 2) {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "Apply timestamp queues: buffer writes locally, merging incremental diffs smoothly upon reconnect" },
+            { key: "B", text: "Force client-override: replace database snapshot directly with the last local state, discarding missing intervals" },
+            { key: "C", text: "Prompt conflict windows immediately, asking the user to compare code/text line-by-line manually" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Timestamp validation handles reconnection diffs silently without prompting disruptive manual inputs.";
+        } else {
+          options = [
+            { key: "A", text: "Use ResizeObserver triggers and configure CSS breakpoints to scale components nicely" },
+            { key: "B", text: "Enforce static width elements and inject horizontal scrollbars for narrow views" },
+            { key: "C", text: "Build separate visual templates for mobile layouts and desktop dashboards" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "ResizeObserver enables responsive flexibility under a unified component set, simplifying maintenance.";
+        }
+      } else if (roundNumber === 3) {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "Incorporate react debounce/throttle controls and compute graphs within a Web Worker sandbox" },
+            { key: "B", text: "Recalculate complete Recharts Bezier spline interpolations immediately on every single keystroke" },
+            { key: "C", text: "Throttles typing rates directly, blocking the canvas with loading spinners when inputs accelerate" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Debounce thresholds combined with worker isolation represent modern software standards for fast text UI.";
+        } else {
+          options = [
+            { key: "A", text: "Integrate a veto flag: rolling decisions back into the revision debates pool for re-discussion" },
+            { key: "B", text: "Block extreme negative votes, forcing a consensus based on a standard simple majority rule" },
+            { key: "C", text: "Lock the computer screen upon veto actions, forcing the user to type descriptions before proceeding" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "A rollback review workflow aligns with robust strategic compliance without introducing friction.";
+        }
+      } else if (roundNumber === 4) {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "Deploy static files on global Content Delivery Networks (CDNs) with localized edge caches" },
+            { key: "B", text: "Keep server files strictly in a central cluster, keeping build pipelines plain with no CDN setup" },
+            { key: "C", text: "Implement heavy preloads (e.g., loading all multi-media graphics directly during initial index entry)" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Localized edge caching is the most standard tool to neutralize global distribution route delays.";
+        } else {
+          options = [
+            { key: "A", text: "Utilize isolated gray canary rollouts with limited early adopters to log active telemetry safely" },
+            { key: "B", text: "Conduct immediate wide release to the entire audience without progressive testing" },
+            { key: "C", text: "Restrict publication entirely until offline simulations undergo internal reviews for weeks" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Canary branches establish safe test areas to optimize usability prior to widespread system load.";
+        }
+      } else {
+        if (idx === 0) {
+          options = [
+            { key: "A", text: "Friction conversion funnel, debate metrics velocity, and build readiness scores" },
+            { key: "B", text: "Granular click traces, absolute active minutes, and server memory usages" },
+            { key: "C", text: "Daily markdown downloads volume, and total count of client-side HTTP 400 bad API loads" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Funnels, activity, and readiness directly align with tracking commercial product success.";
+        } else {
+          options = [
+            { key: "A", text: "Offer visual achievement summaries upon export to prompt organic user recommendations" },
+            { key: "B", text: "Launch extensive email campaigns to draw inactive accounts back with heavy discount offers" },
+            { key: "C", text: "Enforce unlock rules (e.g., requiring users to invite 3 peers to unlock further analysis panels)" }
+          ];
+          aiPreferred = "A";
+          aiJudgmentReason = "Providing shareable social artifacts drives high organic traction naturally without aggressive ads.";
+        }
+      }
+    }
+
+    // Fallback if none parsed - e.g. generic
+    if (options.length === 0) {
+      options = [
+        { key: "A", text: isZh ? "采用标准化行业推荐实践 (AI 推荐)" : "Adopt standard industry guidelines (AI Recommended)" },
+        { key: "B", text: isZh ? "进行定制化的高阶开发以支持特殊场景的需求" : "Build customized complex workflows for advanced edge cases" },
+        { key: "C", text: isZh ? "暂缓本项议题决策，待下个物理周期启动后再议" : "Postpone this item to address in later development cycles" }
+      ];
+      aiPreferred = "A";
+      aiJudgmentReason = isZh 
+        ? "标准化实践最快，开发极易落地，能保证交付时限要求。"
+        : "Standard patterns are easiest to build and minimize potential delivery risks.";
+    }
+
+    return JSON.stringify({
+      question: q,
+      options,
+      aiPreferred,
+      aiJudgmentReason
+    });
+  });
 }
 
 function generateMockRound(project: ProjectState, roundNumber: number): RoundSummary {
@@ -375,7 +602,7 @@ function generateMockRound(project: ProjectState, roundNumber: number): RoundSum
     responses,
     moderatorSummary,
     decisionsLocked,
-    openQuestions,
+    openQuestions: mockifyQuestions(openQuestions, isZh, roundNumber),
   };
 }
 
@@ -447,7 +674,23 @@ export async function processNextRound(project: ProjectState, action: string, cu
   ${JSON.stringify(agentResults, null, 2)}
   
   Task:
-  Summarize this round in simple, non-jargon, layman-friendly words. Keep sentences short and easy to understand. Completely avoid high-sounding academic buzzwords or complex technological phrases. If talking about technical decisions, explain simply what they mean to a casual reader. Identify consensus, disagreements, newly locked decisions, and open questions.
+  Summarize this round in simple, non-jargon, layman-friendly words. Keep sentences short and easy to understand. Completely avoid high-sounding academic buzzwords or complex technological phrases. If talking about technical decisions, explain simply what they mean to a casual reader. Identify consensus, disagreements, and newly locked decisions.
+  
+  CRITICAL REQUIREMENT FOR 'openQuestions':
+  For each question in the 'openQuestions' array, you MUST output a stringified JSON representing a multiple-choice question format so the user can easily choose option A, B, or C, or choose AI's recommended decision.
+  The stringified JSON for each question MUST strictly follow this structured schema:
+  {
+    "question": "The core strategic or design question / issue needing user decision",
+    "options": [
+      {"key": "A", "text": "Option A text: First realistic path with action details"},
+      {"key": "B", "text": "Option B text: Second alternative path with active details"},
+      {"key": "C", "text": "Option C text: Third contrasting path or defer/cancel choice"}
+    ],
+    "aiPreferred": "A", // Recommended choice key, either "A", "B", or "C"
+    "aiJudgmentReason": "A comprehensive but simple explanation of why the AI highly recommends this path"
+  }
+  Important: All text fields in the stringified JSON (like question, text in options, and aiJudgmentReason) MUST be written in ${project.language === 'zh' ? 'Chinese (Simplified)' : 'English'}. The keys 'question', 'options', 'key', 'text', 'aiPreferred', and 'aiJudgmentReason' MUST remain in English. Ensure the entire JSON is valid, cleanly serialized as a single-line string with escaped double quotes, and contains NO markdown backticks inside the array values.
+  
   If confidence is generally > 80% and disagreements are minor, note that we might be ready to conclude.${outputLanguageInstruction}`;
 
     const moderatorSchema: Schema = {
@@ -667,12 +910,70 @@ The initiative has completed 5 sessions of evaluation. Implementation paths and 
 
   const context = formatMemory(project) + `\nGlobal Decisions:\n- ${project.globalDecisions.join('\n- ')}\n`;
   
+  const uiStyle = project.uiStyle || 'interactive-neon';
+  const isZh = project.language === 'zh';
+  let designGuideline = '';
+
+  if (uiStyle === 'interactive-neon') {
+    designGuideline = isZh ? `
+=== 强制界面设计系统规范：高亮单屏幻彩赛博霓虹游戏美学 (用于规避 1990s 简陋复古风格) ===
+- 背景层：严禁使用通用灰白色调或无修饰背景。全屏选用高饱和深色/绝对黑色，配合富有深度心流感的径向流光背景。
+- 卡片面板：配置大圆角（rounded-xl/rounded-2xl）及毛玻璃质感（backdrop-blur-md），四周饰以高精度、赛博幻彩发光双色渐变边框（如发光青、荧光绿或曜金橘），卡片本身需具备极高的悬浮阴影深度。
+- 交互按钮：绝对杜绝粗糙的 HTML5 默认表单与按钮。所有按钮必须编写专属 hover、active 过渡，按钮高亮时产生外发光粒子、霓虹阴影或轻量水波纹回弹逻辑。
+- 动态循环：集成极其流畅的 CSS 极速微过渡，支持悬浮循环、呼吸闪烁、或基于 keyframes 的光标定位特效。对于画板渲染，绝不能绘制简陋无渐变的原生黑白色，必须配置 shadowBlur、多段径向发光着色，渲染出游戏控制舱的未来感。
+- 字体与字距：标题引入流线派现代展示字体（如 Space Grotesk / Outfit），数字、得分、统计、率值等一律强制应用科技感等宽字体（如 JetBrains Mono），整体字间距略微拉伸（tracking-wider/tracking-widest），构筑奢华精致的高端游戏操作台。
+` : `
+=== MANDATORY DESIGN STYLE SYSTEM: SLEEK CYBER-GLOW GAME AESTHETIC (ANTI-1990 RETRO FALLBACK) ===
+- Background: Full screen absolute black with radial dark cosmic highlights. Avoid light-mode or generic gray backgrounds.
+- Card panels: Modern thick borders with radiant, neon flowing gradients (cyan, emerald, hot-pink, or indigo purple). Rounded-xl/rounded-2xl styling with heavy backdrop-filtration backdrop-blur-md and high visual depth.
+- Interactions: Integrate rich, delightful visual micro-animations. Clickable items must have active and hover spring transitions, neon cursor offsets, or responsive wave/ripple effects. Completely avoid primitive un-CSS'ed HTML outlines or standard buttons.
+- Visual loops: Create premium animated glowing backgrounds, subtle floating visual keyframes, or simple CSS glow pulses. If drawing on a Canvas or creating a custom game board, NEVER draw flat boring rectangles. Give every layout custom drop shadows, shiny corner glows, and futuristic modern HUD meters.
+- Fonts & Spacing: Clean display headings (Outfit / Space Grotesk) paired with monospace (JetBrains Mono) for numerical values, scores, rates, and counters to maintain a premium arcade cockpit energy.
+`;
+  } else if (uiStyle === 'modern-minimalist') {
+    designGuideline = isZh ? `
+=== 强制界面设计系统规范：极客机能主义极简深色（Vercel/Linear 风格） ===
+- 背景层：墨黑及深石板碳色背景，留足恰当的空白与呼吸感，建立心流思考境界。
+- 面板划分：发丝般纤细的半透明银灰色分割线（border-slate-800/border-slate-700），配合微悬浮的卡片面板，拒绝厚重或刺眼的阴影。
+- 高亮修饰：全站贯彻去彩度的色彩美学，仅在最核心的状态位或行动点上使用单点高饱和电光蓝、魅影紫或金属银。
+- 字体体系：标题强制在 Inter/SF Pro 英文字符中选择并对齐紧凑型字间距和字重（tracking-tight font-medium），系统数值及遥测信息采用标准科技等宽（JetBrains Mono）做精密感输出。
+- 动效仪式：干净利落的滑入（slide-in）、透明度淡入以及微弱的 hover 文字反色动效，彻底抛弃无序的背景渐变和高难度粒子。
+` : `
+=== MANDATORY DESIGN STYLE SYSTEM: BLACK SLATE MINIMALIST (VERCEL/LINEAR-STYLE) ===
+- Background: Ink slate dark/midnight charcoal background with spacious Negative Space to establish high cognitive clarity.
+- Panels: Thin hairline silver border lines (border-slate-800/border-slate-700/50), extremely minimal box-shadows, and elegant dark-pane backdrop-blur elements.
+- Accents: Absolute monochromatic visual purity, using single-color functional indicator highlights (e.g. sharp Cyan, Electric Purple, or Pure Silver-white) only to draw critical gaze.
+- Typography: Premium sleek sans-serif sans font pairings (Inter, SF Pro) with custom micro tracking-tight font-weights, and classic mono (JetBrains Mono) for system state readouts.
+- Visual ceremony: Crisp and neat slide-in entrance transitions, smooth opacity fade animations, and micro-hover text glows. Avoid any loud gradient noise or aggressive flashing.
+`;
+  } else if (uiStyle === 'warm-editorial') {
+    designGuideline = isZh ? `
+=== 强制界面设计系统规范：优雅和煦复古书卷美学（Warm Editorial Paper） ===
+- 背景层：米白暖眼底色（#FAF9F5 或 #FDFBF7），配以温润深泥灰色文字，建立顶级护眼和人文体验。
+- 面板呈现：书卷式的平展阴影比例（带有温润色相叠加的 ambient warm shadow），优雅的略带弧度暖陶土细线边框。
+- 高亮配搭：平铺天然的大地色彩组合（如日落杏黄、陶瓦红、鼠尾草绿、秋收琥珀色），拒绝一切高冷或科技极端的电光色。
+- 字体体系：主副标题、游戏及系统大字样一律选用高雅复古的衬线大标题（如 Playfair Display / Georgia），与宽敞高行距的无衬线正文。
+- 动效过渡：采用偏自然的柔和叶落淡入（leaf-fades）以及舒缓的圆角扩展折叠渐变。
+` : `
+=== MANDATORY DESIGN STYLE SYSTEM: WARM COZY EDITORIAL PAPERS ===
+- Background: Luxurious warm eye-safe off-white cream paper backgrounds (#FAF9F5 / #FDFBF7) coupled with soft clay-gray text for superb visual comfort. Avoid harsh absolute whites or dark screens.
+- Panels: Soft, natural book-like drop shadows (shadow-md/shadow-lg with custom warm amber ambient color multipliers), rounded warm clay borders, and elegant framing.
+- Highlight elements: Earthy natural apricot, terracotta, sage green, and warm harvest ambers. Use flat subtle badges.
+- Typography: Classy editorial serif typeface display fonts (Georgia, Playfair Display, Garamond) for primary titles and game headers, beautifully harmonized with pristine sans-serif body copies with comfortable line-heights (leading-relaxed).
+- Transitions: Organic, organic-feeling leaf fade effects and smooth expand-collapse easing protocols.
+`;
+  }
+
   const outputLanguageInstruction = project.language === 'zh'
         ? "\nCRITICAL RULE: Generate the markdown content entirely in Chinese (Simplified)." 
         : "";
 
   const prompt = `Based on the following AI Strategic Workspace context, generate markdown files and build readiness metrics for an external coding agent to build the actual product.
   Context: ${context}
+  
+  CRITICAL VISUAL DESIGN SYSTEM MANDATE:
+  ${designGuideline}
+  You MUST inject the strict visual directives, responsive styling, margins, exact typography, background colors, card rounded bounds, and active micro-animations from this design system mandate directly and explicitly inside the 'systemInstructions' (SYSTEM_INSTRUCTIONS.md) and the task phase list 'builderPrompt' (BUILDER_PROMPT.md). This guarantees the downstream coding AI (such as Cursor, v0, Bolt, or Lovable) STRICTLY constructs extremely premium, elegant modern layouts and avoids turning simple tools or games into generic, retro, unstyled, clunky 1990-style flat interfaces.
   
   Your output MUST evaluate the architectural alignment, team consensus convergence, and developer action readiness.
   Specifically, compute:
