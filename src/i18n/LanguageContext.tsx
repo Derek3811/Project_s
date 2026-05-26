@@ -1,0 +1,262 @@
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+export type Language = 'en' | 'zh';
+
+export const translations = {
+  en: {
+    appTitle: "AI Strategic Workspace",
+    goBackHome: "Back to Dashboard",
+    deleteProject: "Delete Project",
+    deleteConfirm: "Are you sure you want to delete this project? This process is permanent.",
+    projects: "Active Projects",
+    projectsDesc: "Manage your strategic initiatives and ongoing agent meetings.",
+    newInitiative: "NEW INITIATIVE",
+    transferPack: "Dossier & Transfer Pack",
+    transferPackDesc: "Copy and save the raw project state below. Use this to backup or restore this workspace anytime.",
+    importSession: "Import Session State",
+    importSessionDesc: "Paste a previously exported JSON state to instantly restore complete debate rounds, global memory, and decisions.",
+    pasteJsonLabel: "Paste JSON Workspace State",
+    restoreBtn: "RESTORE STRATEGIC WORKSPACE",
+    jsonTab: "JSON Data Model (Restore)",
+    markdownTab: "Markdown Report (AI Prompt)",
+    toggleDossier: "📁 Backup & Transfer Pack",
+    noProjects: "No projects yet",
+    startFirst: "Start a new strategic meeting to get started.",
+    createFirst: "CREATE YOUR FIRST PROJECT",
+    coreIdea: "Core Idea",
+    ideaPlaceholder: "Describe the product or strategy...",
+    primaryGoals: "Primary Goals",
+    goalsPlaceholder: "What exactly are we trying to achieve?",
+    constraints: "Constraints",
+    constraintsPlaceholder: "Time, budget, or architectural limits...",
+    assembleBoard: "Assemble the AI Board (Select >=1)",
+    initializing: "Initializing...",
+    startMeeting: "START BOARD MEETING",
+    activeMeeting: "Active Board Meeting",
+    completed: "Completed",
+    agentsCount: "Agents",
+    meetingInit: "Meeting initialized",
+    startAnalysis: "Start the first analysis round to hear initial strategic perspectives.",
+    conclude: "CONCLUDE MEETING",
+    processing: "Processing round...",
+    startInitial: "START INITIAL ANALYSIS",
+    nextRound: "NEXT DEBATE ROUND",
+    exportSpec: "EXPORT BUILDER SPEC",
+    oneClickCopy: "One-Click Copy",
+    promptLibraryTitle: "⚡ Downstream Implementation Prompts",
+    promptLibraryDesc: "Copy these highly-refined agent instructions with one click to instantly synthesize and build this software on Cursor, v0, Bolt.new, or any developer AI!",
+    builderPromptTab: "Builder Prompt",
+    systemInstructionsTab: "System Guidelines",
+    foundationTab: "Product Foundations",
+    combinedMegaPromptTab: "🔥 Combined Mega Prompt",
+    copyBtn: "Copy to Clipboard",
+    copiedBtn: "Copied! ✓",
+    globalMemory: "Global Memory",
+    lockedDecisions: "Decisions",
+    openQuestions: "Open Questions",
+    noneYet: "None yet",
+    round: "Round",
+    initialAnalysis: "Initial Analysis",
+    debateSynthesis: "Debate & Synthesis",
+    reasoning: "Reasoning",
+    risks: "Identified Risks",
+    synthesis: "Synthesis",
+    conf: "CONF",
+    moderator: "MODERATOR",
+    notFound: "Workspace not found.",
+    loadingCtx: "Loading workspace context...",
+    loadingWorkspace: "Loading workspace...",
+    agent: "Agent",
+    statusInMeeting: "meeting",
+    progressLabel: "Meeting Progress",
+    ofRounds: "of 5 rounds",
+    voteApproved: "Position Approved",
+    voteRejected: "Position Rejected",
+    votePrompt: "Cast your vote or evaluation on this agent's stance",
+    thumbsUp: "Approve",
+    thumbsDown: "Reject",
+    consensusChartTitle: "Your Voting & AI Confidence",
+    chartApprove: "Approved",
+    chartReject: "Rejected",
+    chartAbstain: "Pending / No Vote",
+    replyToQuestion: "Reply to Question",
+    answerInputLabel: "Answering: ",
+    feedbackPlaceholder: "Provide your replies to open questions, direct specific agents, or critique current positions before starting the next round...",
+    feedbackTitle: "Your Feedback & Answers to Open Questions",
+    userFeedback: "YOUR DIRECTIONS",
+    userDirections: "Feedback & Replied Answers",
+    submitFeedbackHelp: "Your direction and replied answers are injected dynamically into the next meeting round context. Every board agent will read, incorporate, and respond to your specific feedback!",
+    modelLabel: "Gemini Model Engine",
+    modelDesc: "Select which Gemini model will power the active agent analyses & debates.",
+    agentDescriptions: {
+      "1": "Focuses on user needs, market fit, and feature prioritization.",
+      "2": "Focuses on scalability, database schema, and technical robustness.",
+      "3": "Identifies vulnerabilities, compliance gaps, and access control issues.",
+      "4": "Advocates for usability, minimal friction, and clear user journeys.",
+      "5": "Focuses on testing paradigms, continuous integration, regression risks, and robust code validation.",
+      "6": "Leverages telemetry, funnel data, usage metrics, and analytics to steer features with evidence.",
+      "7": "Fosters organic user acquisition, localized growth campaigns, market position, and launch reach.",
+      "8": "Prioritizes robust pipelines, automated deployments, container scalability, and uptime latency.",
+      "9": "Ensures strict alignment with regulatory compliance, GDPR, accessibility laws, and data licenses."
+    },
+    agentNames: {
+      "1": "Product Manager",
+      "2": "System Architect",
+      "3": "Security Analyst",
+      "4": "UX Lead",
+      "5": "QA Specialist",
+      "6": "Data Analyst",
+      "7": "Marketing & Growth Lead",
+      "8": "DevOps & SRE Engineer",
+      "9": "Legal & Compliance Officer"
+    },
+    simplifyView: "Layman Scannable Mode",
+    simplifyViewDesc: "Hides dense technical details and summarizes opinions in plain, simple words.",
+    showTechnicalDetails: "Show details & reasons",
+    hideTechnicalDetails: "Hide details"
+  },
+  zh: {
+    appTitle: "AI 战略工作区",
+    goBackHome: "返回仪表盘",
+    deleteProject: "删除项目",
+    deleteConfirm: "您确定要删除此项目吗？该操作是永久性的，且无法撤销。",
+    projects: "活跃项目",
+    projectsDesc: "管理您的战略计划和正在进行的 AI 会议。",
+    newInitiative: "新建计划",
+    transferPack: "数据留档与迁移中控包 (Transfer Pack)",
+    transferPackDesc: "一键复制并保存下方完整的活跃会商原生数据，可用于后续完美复位或当做高价值 AI 上下文。",
+    importSession: "导入/恢复历史会商",
+    importSessionDesc: "粘贴已导出的 JSON 数据，即可完美还原并复活所有历史辩论轮次、已锁定决策及全局脑海记忆。",
+    pasteJsonLabel: "粘贴原生 JSON 数据",
+    restoreBtn: "执 行 自 愈 导 入",
+    jsonTab: "JSON 原始模型 (用于复位)",
+    markdownTab: "Markdown 战略总览 (用于AI对话)",
+    toggleDossier: "📁 数据续保与留档中心 (Transfer Pack)",
+    noProjects: "暂无项目",
+    startFirst: "开始一次新的战略会议以开展工作。",
+    createFirst: "创建您的第一个项目",
+    coreIdea: "核心想法",
+    ideaPlaceholder: "描述产品或战略...",
+    primaryGoals: "主要目标",
+    goalsPlaceholder: "我们究竟要达成什么目标？",
+    constraints: "限制条件",
+    constraintsPlaceholder: "时间、预算或架构限制...",
+    assembleBoard: "组建 AI 委员会 (至少选择 1 个)",
+    initializing: "正在初始化...",
+    startMeeting: "开始董事会议",
+    activeMeeting: "进行中的董事会议",
+    completed: "已完成",
+    agentsCount: "名 AI 成员",
+    meetingInit: "会议已初始化",
+    startAnalysis: "开始第一轮分析，听取初步战略视角。",
+    conclude: "结束会议",
+    processing: "正在处理中...",
+    startInitial: "开始初步分析",
+    nextRound: "进入下一轮辩论",
+    exportSpec: "导出构建说明",
+    oneClickCopy: "一键复制提示词",
+    promptLibraryTitle: "⚡ 下游开发智能体提示词专区 (Codegen AI Prompts)",
+    promptLibraryDesc: "一键复制以下由多智能体精心校准的 AI 构建指令，可直接输入给 Cursor、v0、Bolt.new 或任何高级编程模型，开始极速物理构建！",
+    builderPromptTab: "构建提示词 (阶段任务)",
+    systemInstructionsTab: "系统开发指南 (全局指令)",
+    foundationTab: "业务与技术基线 (共识文档)",
+    combinedMegaPromptTab: "🔥 全景大提示词 (三合一)",
+    copyBtn: "一键复制到剪贴板",
+    copiedBtn: "复制成功! ✓",
+    globalMemory: "全局记忆",
+    lockedDecisions: "决策",
+    openQuestions: "待解决问题",
+    noneYet: "暂无",
+    round: "轮次",
+    initialAnalysis: "初步分析",
+    debateSynthesis: "辩论与综合",
+    reasoning: "推理",
+    risks: "识别到的风险",
+    synthesis: "综合总结",
+    conf: "置信度",
+    moderator: "主持人",
+    notFound: "未找到工作区。",
+    loadingCtx: "正在加载工作区上下文...",
+    loadingWorkspace: "正在加载工作区...",
+    agent: "智能体",
+    statusInMeeting: "会议中",
+    progressLabel: "会议进度",
+    ofRounds: "/ 5 轮辩论",
+    voteApproved: "赞同方案立场",
+    voteRejected: "否决此方案立场",
+    votePrompt: "请对该智能体的立场进行表决（赞成/反对）",
+    thumbsUp: "赞成",
+    thumbsDown: "反对",
+    consensusChartTitle: "您的表决与 AI 置信度分布",
+    chartApprove: "赞成",
+    chartReject: "反对",
+    chartAbstain: "未投票 / 弃权",
+    replyToQuestion: "回复该问题",
+    answerInputLabel: "正在答复: ",
+    feedbackPlaceholder: "输入您对本轮开放问题的回复、点评发言或指导下次辩论方向...",
+    feedbackTitle: "您的反馈与开放建议回复",
+    userFeedback: "您的决策指令",
+    userDirections: "反馈意见与对应答复",
+    submitFeedbackHelp: "您的反馈和答复会在此注入会商记忆中，每一位智能体董事都会在下一轮发言里明确对齐并重点回应您的意见！",
+    modelLabel: "Gemini 模型底座",
+    modelDesc: "选择驱动 AI 委员会辩论会商的底层 Gemini 大语言模型。",
+    agentDescriptions: {
+      "1": "关注用户需求、市场契合度和功能优先级。",
+      "2": "关注可扩展性、数据库模式和技术健壮性。",
+      "3": "识别漏洞、合规缺陷和访问控制问题。",
+      "4": "倡导可用性、最小化摩擦和清晰的用户旅程。",
+      "5": "专注于测试方针、持续集成、回归风险评估和健壮的代码层级校验。",
+      "6": "利用埋点遥测、用户留存、漏斗转化与精细分析，用数据结论赋能决策。",
+      "7": "制定策略促进有机用户获取、本地化增长战役、精确市场定位以及发布推广。",
+      "8": "聚焦 CI/CD 自动部署流程、分布式云原生基础设施扩展性、高可用与响应延迟评估。",
+      "9": "确保严格遵守地区内数据合规性（如 GDPR/CCPA）、无障碍法规、服务条款准入以及合规风险把控。"
+    },
+    agentNames: {
+      "1": "产品经理",
+      "2": "系统架构师",
+      "3": "安全分析师",
+      "4": "体验设计主管",
+      "5": "QA 测试保障专家",
+      "6": "数据科学家",
+      "7": "营销与增长专家",
+      "8": "DevOps 运维专家",
+      "9": "法务与合规专家"
+    },
+    simplifyView: "极简通俗模式",
+    simplifyViewDesc: "隐藏令人费解的专业学术黑话与技术细节，直接用接地气的大白话概括各方核心主张。",
+    showTechnicalDetails: "展开背景逻辑与潜在风险",
+    hideTechnicalDetails: "收起细节"
+  }
+};
+
+type LanguageContextType = {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: typeof translations.en;
+};
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const [language, setLanguage] = useState<Language>(() => {
+    return (localStorage.getItem('app_lang') as Language) || 'en';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('app_lang', language);
+  }, [language]);
+
+  const t = translations[language];
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export function useLanguage() {
+  const context = useContext(LanguageContext);
+  if (!context) throw new Error('useLanguage must be used within LanguageProvider');
+  return context;
+}

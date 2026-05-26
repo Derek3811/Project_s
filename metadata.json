@@ -1,0 +1,8 @@
+{
+  "name": "AI Strategic Workspace",
+  "description": "A structured AI orchestration platform for strategic thinking, automated meetings, and execution-ready action plans.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
